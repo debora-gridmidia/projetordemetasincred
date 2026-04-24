@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projetor de Metas | InCred</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1150px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 4px; color: var(--text-main); }
+        p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            border-radius: 6px;
+        }
+        
+        .tab:hover { background: #f1f5f9; color: var(--text-main); }
+        .tab.active { color: var(--primary); background: #eff6ff; }
+        .tab.active::after {
+            content: '';
+            position: absolute; bottom: -10px; left: 0; width: 100%; height: 2px; background-color: var(--primary);
+        }
+
+        .grid-inputs { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 12px; 
+            margin-bottom: 24px; 
+        }
+
+        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; white-space: nowrap; }
+        
+        input[type="text"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; }
+        input.readonly-input { background-color: #f8fafc; color: var(--text-muted); border-style: dashed; pointer-events: none; }
+        input.auto-filled { background-color: #dcfce7; border-color: #86efac; }
+
+        .slider-group { background: var(--bg); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); }
+        .slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-weight: 500; font-size: 0.85rem;}
+        .pct-input { width: 55px !important; padding: 4px !important; text-align: right; font-weight: bold; color: var(--primary); border: 1px solid var(--border); border-radius: 4px; }
+
+        .kpi-card { background: var(--card); border: 1px solid var(--border); padding: 16px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center; }
+        .kpi-card.destaque-bg { background: #eff6ff; border-color: #bfdbfe; }
+        .kpi-label { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+        .kpi-value { font-size: 1.5rem; font-weight: bold; color: var(--text-main); }
+        .kpi-value.destaque { color: var(--primary); font-size: 1.8rem; }
+        .kpi-sub { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; line-height: 1.4;}
+
+        .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .grid5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+
+        .roas-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 12px; }
+        .roas-bar { height: 8px; border-radius: 4px; transition: width 0.3s, background-color 0.3s; }
+
+        .status-success { background-color: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .status-warning { background-color: #fef9c3; color: #854d0e; border-color: #fef08a; }
+        .status-danger { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; }
+        .badge-ok { background: #dcfce7; color: var(--success); }
+        .badge-warn { background: #fef9c3; color: var(--warning); }
+        .badge-danger { background: #fee2e2; color: var(--danger); }
+
+        .radio-group { display: flex; gap: 20px; margin-bottom: 16px; background: var(--bg); padding: 14px; border-radius: 8px; border: 1px solid var(--border); align-items: center; }
+        .radio-label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-main); cursor: pointer; }
+
+        .divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+        .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 8px; color: var(--text-main); }
+        
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 0.85rem; color: #1e40af; }
+
+        .sub-tabs {
+            display: flex;
+            gap: 8px;
+            margin: 20px 0 16px 0;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 6px;
+            width: fit-content;
+        }
+        .sub-tab {
+            padding: 6px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: transparent;
+            color: var(--text-muted);
+            transition: background 0.15s, color 0.15s;
+        }
+        .sub-tab:hover { background: #e2e8f0; color: var(--text-main); }
+        .sub-tab.active { background: var(--primary); color: #fff; }
+
+        .cons-metric-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 4px 0; }
+        .cons-metric-label { color: var(--text-muted); }
+        .cons-metric-val { font-weight: bold; color: var(--text-main); }
+
+        /* Stepper */
+        .stepper {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 24px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 16px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .stepper-step:hover { background: #e2e8f0; }
+        .stepper-step.active .stepper-num { background: var(--primary); color: #fff; }
+        .stepper-step.active .stepper-text { color: var(--primary); font-weight: 700; }
+        .stepper-num {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--border);
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .stepper-text { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+        .stepper-arrow { color: var(--border); font-size: 1rem; padding: 0 4px; }
+
+        /* Input error state */
+        input.input-error { border-color: var(--danger) !important; background-color: #fff1f1 !important; }
+        .input-error-msg { font-size: 0.72rem; color: var(--danger); font-weight: 600; margin-top: 2px; display: none; }
+        .input-error-msg.visible { display: block; }
+
+        /* Projeção base summary */
+        .proj-base-summary {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #166534;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .proj-base-summary strong { font-weight: 700; }
+
+        /* Header com logo */
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Projetor de Metas | InCred</h1>
+    <p class="subtitle">Análise de histórico e simulador de projeções e metas.</p>
+
+    <div class="stepper">
+        <div class="stepper-step active" id="step-historico" onclick="setView('historico')">
+            <div class="stepper-num" id="stepnum-historico">1</div>
+            <div class="stepper-text">Histórico do Mês Anterior</div>
+        </div>
+        <div class="stepper-arrow">›</div>
+        <div class="stepper-step" id="step-projecao" onclick="setView('projecao')">
+            <div class="stepper-num" id="stepnum-projecao">2</div>
+            <div class="stepper-text">Configure a Projeção</div>
+        </div>
+        <div class="stepper-arrow">›</div>
+        <div class="stepper-step" id="step-setor" onclick="setView('setor')">
+            <div class="stepper-num" id="stepnum-setor">3</div>
+            <div class="stepper-text">Ajuste por Setor</div>
+        </div>
+        <div class="stepper-arrow">›</div>
+        <div class="stepper-step" id="step-consolidado" onclick="setView('consolidado')">
+            <div class="stepper-num" id="stepnum-consolidado">4</div>
+            <div class="stepper-text">Acompanhe no Consolidado</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab" id="tab-historico" onclick="setView('historico')">Histórico</button>
+        <button class="tab" id="tab-projecao" onclick="setView('projecao')">Projeção</button>
+        <button class="tab" id="tab-setor" onclick="setView('setor')">Metas por Setor</button>
+        <button class="tab" id="tab-consolidado" onclick="setView('consolidado')">Consolidado</button>
+    </div>
+
+    <div id="view-historico">
+        <div class="section-title">Resultados vs Metas (Mês Anterior)</div>
+        <div class="grid-inputs">
+            <div class="input-group"><label>Meta Custo ($)</label><input type="text" id="meta-custo-ant"><span class="input-error-msg" id="err-meta-custo-ant">Valor inválido</span></div>
+            <div class="input-group"><label>Custo Realizado ($)</label><input type="text" id="inv-ant"><span class="input-error-msg" id="err-inv-ant">Valor inválido</span></div>
+            <div class="input-group"><label>Meta Receita ($)</label><input type="text" id="meta-rec-ant"><span class="input-error-msg" id="err-meta-rec-ant">Valor inválido</span></div>
+            <div class="input-group"><label>Receita Realizada ($)</label><input type="text" id="rec-ant"><span class="input-error-msg" id="err-rec-ant">Valor inválido</span></div>
+            <div class="input-group"><label>Meta ROAS (%)</label><input type="text" id="meta-roas-ant" value="150"></div>
+            <div class="input-group"><label>Meta ROAS ($)</label><input type="text" id="meta-roas-dol-top" class="readonly-input" readonly></div>
+            <div class="input-group"><label>ROAS ($) Realizado</label><input type="text" id="roas-dol-real-top" class="readonly-input" readonly></div>
+        </div>
+
+        <div class="section-title">Consolidado Mensal Anterior</div>
+        <div class="grid4">
+            <div class="kpi-card">
+                <div class="kpi-label">Custo</div>
+                <div class="kpi-value" id="custo-ant-val">$0,00</div>
+                <div class="kpi-sub" id="custo-ant-meta">Meta: $0,00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Receita</div>
+                <div class="kpi-value" id="rec-realizada-ant-val">$0,00</div>
+                <div class="kpi-sub" id="rec-ant-meta">Meta: $0,00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS ($)</div>
+                <div class="kpi-value" id="roas-dol-ant-val">$0,00</div>
+                <div class="kpi-sub" id="roas-dol-ant-meta">Meta: $0,00</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS (%)</div>
+                <div class="kpi-value" id="roas-ant-val">0,0%</div>
+                <div class="kpi-sub" id="roas-ant-meta">Meta: 0,0%</div>
+            </div>
+        </div>
+
+        <div class="kpi-card destaque-bg">
+            <div class="kpi-label" id="cresc-label">Desafio de Recuperação (Déficit ROAS $)</div>
+            <div class="kpi-value destaque" id="crescimento-necessario">$0,00</div>
+            <div class="kpi-sub" id="cresc-sub">—</div>
+        </div>
+    </div>
+
+    <div id="view-projecao" style="display:none;">
+        <div class="section-title">Configuração da Projeção</div>
+
+        <div class="radio-group" style="flex-wrap:wrap; gap:12px 20px;">
+            <span style="margin-right: 8px; font-weight: bold;">Base de Cálculo:</span>
+            <label class="radio-label"><input type="radio" name="base-proj" value="meta" checked> Meta (mês anterior)</label>
+            <label class="radio-label"><input type="radio" name="base-proj" value="real"> Realizado (mês anterior)</label>
+            <span style="margin-left:auto; font-size:0.82rem; color:var(--text-muted); align-self:center;">
+                Usando: <strong id="proj-base-tipo-label" style="color:var(--text-main);">Meta do mês anterior</strong> &nbsp;·&nbsp; ROAS $: <strong id="proj-base-roas-dol" style="color:var(--primary);">$0,00</strong> &nbsp;·&nbsp; Custo: <strong id="proj-base-custo" style="color:var(--primary);">$0,00</strong> &nbsp;·&nbsp; Receita: <strong id="proj-base-receita" style="color:var(--primary);">$0,00</strong>
+            </span>
+        </div>
+
+        <div class="grid-inputs">
+            <div class="input-group">
+                <label>Variação ROAS $ (%)</label>
+                <input type="number" id="proj-var-roas-dol" value="0" step="0.1">
+            </div>
+            <div class="input-group">
+                <label>ROAS % Esperado</label>
+                <input type="number" id="proj-roas-pct-input" value="150" step="0.1">
+            </div>
+        </div>
+
+        <div class="section-title">Projeção para o Próximo Mês</div>
+        <div class="grid4">
+            <div class="kpi-card">
+                <div class="kpi-label">Meta de ROAS $</div>
+                <div class="kpi-value" id="proj-roas-dol-val">$0,00</div>
+                <div class="kpi-sub">ROI esperado</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Meta de ROAS %</div>
+                <div class="kpi-value" id="proj-roas-pct-val">0,0%</div>
+                <div class="kpi-sub">Multiplicador de retorno</div>
+            </div>
+            <div class="kpi-card destaque-bg">
+                <div class="kpi-label">Meta de Custo</div>
+                <div class="kpi-value destaque" id="proj-custo-val">$0,00</div>
+                <div class="kpi-sub">Custo necessário</div>
+            </div>
+            <div class="kpi-card destaque-bg">
+                <div class="kpi-label">Meta de Receita</div>
+                <div class="kpi-value destaque" id="proj-rec-val">$0,00</div>
+                <div class="kpi-sub">Receita a atingir</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-consolidado" style="display:none;">
+        <div class="section-title">Dashboard Consolidado Global (Squad)</div>
+        
+        <div class="grid-inputs">
+            <div class="input-group"><label>Custo Realizado ($)</label><input type="text" id="cons-custo"><span class="input-error-msg" id="err-cons-custo">Valor inválido</span></div>
+            <div class="input-group"><label>Receita Realizada ($)</label><input type="text" id="cons-receita"><span class="input-error-msg" id="err-cons-receita">Valor inválido</span></div>
+            <div class="input-group"><label>Dia Atual</label><input type="number" id="cons-dia-atual"></div>
+            <div class="input-group"><label>Dias no Mês</label><input type="number" id="cons-dias-total" value="30"></div>
+            <div class="input-group">
+                <label>Meta Custo ($) <span style="color:var(--success);font-size:0.65rem;">← da aba Setor</span></label>
+                <input type="text" id="cons-meta-custo-input" class="readonly-input" readonly>
+            </div>
+            <div class="input-group">
+                <label>Meta Receita ($) <span style="color:var(--success);font-size:0.65rem;">← da aba Setor</span></label>
+                <input type="text" id="cons-meta-receita-input" class="readonly-input" readonly>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 24px; margin-top: 12px;">
+            <div class="kpi-card destaque-bg" style="align-items: center; justify-content: center; padding: 20px;">
+                <div class="kpi-label">Progresso do Mês</div>
+                <div class="kpi-value destaque" id="cons-pct-mes">0,0%</div>
+                <div class="kpi-sub" id="cons-dias-label" style="margin-bottom: 12px; font-weight: 500;">Dia 0 de 30 (Restam 30)</div>
+                <div class="roas-bar-wrap" style="width: 100%; height: 8px;">
+                    <div class="roas-bar" id="cons-bar-tempo" style="width: 0%; background-color: var(--primary);"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid4">
+            <div class="kpi-card">
+                <div class="kpi-label">Custo Squad</div>
+                <div class="kpi-value" id="cons-val-custo">$0,00</div>
+                <div style="margin: 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <div class="cons-metric-row"><span class="cons-metric-label">Meta (Mês):</span> <span class="cons-metric-val" id="cons-meta-custo">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Mês):</span> <span class="cons-metric-val" id="cons-falta-custo">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Diário):</span> <span class="cons-metric-val" id="cons-diaria-custo">$0,00</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; margin-bottom: 6px;">
+                    <span>% Atingido</span><span id="cons-pct-custo-text">0%</span>
+                </div>
+                <div class="roas-bar-wrap" style="height: 8px; margin-top: 0;"><div class="roas-bar" id="cons-bar-custo" style="width: 0%; background-color: var(--primary);"></div></div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-label">Receita Squad</div>
+                <div class="kpi-value" id="cons-val-rec">$0,00</div>
+                <div style="margin: 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <div class="cons-metric-row"><span class="cons-metric-label">Meta (Mês):</span> <span class="cons-metric-val" id="cons-meta-rec">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Mês):</span> <span class="cons-metric-val" id="cons-falta-rec">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Diário):</span> <span class="cons-metric-val" id="cons-diaria-rec">$0,00</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; margin-bottom: 6px;">
+                    <span>% Atingido</span><span id="cons-pct-rec-text">0%</span>
+                </div>
+                <div class="roas-bar-wrap" style="height: 8px; margin-top: 0;"><div class="roas-bar" id="cons-bar-rec" style="width: 0%; background-color: var(--primary);"></div></div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS ($) Squad</div>
+                <div class="kpi-value" id="cons-val-roasdol">$0,00</div>
+                <div style="margin: 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <div class="cons-metric-row"><span class="cons-metric-label">Meta (Mês):</span> <span class="cons-metric-val" id="cons-meta-roasdol">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Mês):</span> <span class="cons-metric-val" id="cons-falta-roasdol">$0,00</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Diário):</span> <span class="cons-metric-val" id="cons-diaria-roasdol">$0,00</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; margin-bottom: 6px;">
+                    <span>% Atingido</span><span id="cons-pct-roasdol-text">0%</span>
+                </div>
+                <div class="roas-bar-wrap" style="height: 8px; margin-top: 0;"><div class="roas-bar" id="cons-bar-roasdol" style="width: 0%; background-color: var(--primary);"></div></div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">ROAS (%) Squad</div>
+                <div class="kpi-value" id="cons-val-roaspct">0%</div>
+                <div style="margin: 12px 0; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                    <div class="cons-metric-row"><span class="cons-metric-label">Meta (Mês):</span> <span class="cons-metric-val" id="cons-meta-roaspct">0%</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Falta (Mês):</span> <span class="cons-metric-val" id="cons-falta-roaspct">0%</span></div>
+                    <div class="cons-metric-row"><span class="cons-metric-label">Status:</span> <span class="cons-metric-val" id="cons-diaria-roaspct">-</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; margin-bottom: 6px;">
+                    <span>% Atingido</span><span id="cons-pct-roaspct-text">0%</span>
+                </div>
+                <div class="roas-bar-wrap" style="height: 8px; margin-top: 0;"><div class="roas-bar" id="cons-bar-roaspct" style="width: 0%; background-color: var(--primary);"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-setor" style="display:none;">
+        <div class="section-title">Metas por Setor</div>
+
+        <div class="grid-inputs" id="controles-atuais">
+            <div class="input-group"><label>Custo ($)</label><input type="text" id="investimento" class="auto-filled"></div>
+            <div class="input-group"><label>Receita ($)</label><input type="text" id="metaReceita" class="auto-filled"></div>
+            <div class="input-group"><label>ROAS (%)</label><input type="text" id="meta-roas-atual" value="150"></div>
+            <div class="input-group"><label>Dias no Mês</label><input type="number" id="dias" value="30"></div>
+        </div>
+
+        <div class="section-title">Distribuição de ROAS (%) por canal</div>
+
+        <div class="grid5">
+            <div class="slider-group">
+                <div class="slider-header"><span>Aquisição</span><div style="display:flex;align-items:center;gap:3px;"><input type="number" class="pct-input" id="num-aq" value="70" min="0" max="500" step="1"><span style="font-size:0.8rem;font-weight:700;color:var(--primary);">%</span></div></div>
+                <input type="range" id="roas-aq" min="0" max="500" value="70" step="1" style="width: 100%;">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>E-mail</span><div style="display:flex;align-items:center;gap:3px;"><input type="number" class="pct-input" id="num-em" value="40" min="0" max="500" step="1"><span style="font-size:0.8rem;font-weight:700;color:var(--primary);">%</span></div></div>
+                <input type="range" id="roas-em" min="0" max="500" value="40" step="1" style="width: 100%;">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>Push</span><div style="display:flex;align-items:center;gap:3px;"><input type="number" class="pct-input" id="num-pu" value="18" min="0" max="500" step="1"><span style="font-size:0.8rem;font-weight:700;color:var(--primary);">%</span></div></div>
+                <input type="range" id="roas-pu" min="0" max="500" value="18" step="1" style="width: 100%;">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>WhatsApp</span><div style="display:flex;align-items:center;gap:3px;"><input type="number" class="pct-input" id="num-wa" value="7" min="0" max="500" step="1"><span style="font-size:0.8rem;font-weight:700;color:var(--primary);">%</span></div></div>
+                <input type="range" id="roas-wa" min="0" max="500" value="7" step="1" style="width: 100%;">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header"><span>SMS</span><div style="display:flex;align-items:center;gap:3px;"><input type="number" class="pct-input" id="num-sm" value="15" min="0" max="500" step="1"><span style="font-size:0.8rem;font-weight:700;color:var(--primary);">%</span></div></div>
+                <input type="range" id="roas-sm" min="0" max="500" value="15" step="1" style="width: 100%;">
+            </div>
+        </div>
+
+        <div class="sub-tabs">
+            <button class="sub-tab active" id="subtab-mes" onclick="setPeriodo('mes')">Mês</button>
+            <button class="sub-tab" id="subtab-semana" onclick="setPeriodo('semana')">Semana</button>
+            <button class="sub-tab" id="subtab-dia" onclick="setPeriodo('dia')">Dia</button>
+        </div>
+
+        <div id="periodo-mes">
+            <div class="grid3" style="margin-bottom:16px;">
+                <div class="kpi-card">
+                    <div class="kpi-label">Custo / Mês</div>
+                    <div class="kpi-value" id="inv-mes">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Receita Total / Mês</div>
+                    <div class="kpi-value" id="rec-mes">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ROAS $ / Mês</div>
+                    <div class="kpi-value" id="roas-mes">$0,00</div>
+                </div>
+            </div>
+            <div class="grid5">
+                <div class="kpi-card"><div class="kpi-label">REC. Aquisição</div><div class="kpi-value" id="rec-aq-setor">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-aq-dol-mes">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">REC. E-mail</div><div class="kpi-value" id="rec-em">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-em-dol-mes">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">REC. Push</div><div class="kpi-value" id="rec-pu">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-pu-dol-mes">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">REC. WhatsApp</div><div class="kpi-value" id="rec-wa">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-wa-dol-mes">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">REC. SMS</div><div class="kpi-value" id="rec-sm">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-sm-dol-mes">$0,00</span></div></div>
+            </div>
+        </div>
+
+        <div id="periodo-semana" style="display:none;">
+            <div class="grid3" style="margin-bottom:16px;">
+                <div class="kpi-card">
+                    <div class="kpi-label">Custo / Semana</div>
+                    <div class="kpi-value" id="inv-sem">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Receita Total / Semana</div>
+                    <div class="kpi-value" id="rec-sem">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ROAS $ / Semana</div>
+                    <div class="kpi-value" id="roas-sem">$0,00</div>
+                </div>
+            </div>
+            <div class="grid5">
+                <div class="kpi-card"><div class="kpi-label">Aquisição / Sem.</div><div class="kpi-value" id="rec-aq-sem">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-aq-sem">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">E-mail / Sem.</div><div class="kpi-value" id="rec-em-sem">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-em-sem">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">Push / Sem.</div><div class="kpi-value" id="rec-pu-sem">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-pu-sem">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">WhatsApp / Sem.</div><div class="kpi-value" id="rec-wa-sem">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-wa-sem">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">SMS / Sem.</div><div class="kpi-value" id="rec-sm-sem">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-sm-sem">$0,00</span></div></div>
+            </div>
+        </div>
+
+        <div id="periodo-dia" style="display:none;">
+            <div class="grid3" style="margin-bottom:16px;">
+                <div class="kpi-card">
+                    <div class="kpi-label">Custo / Dia</div>
+                    <div class="kpi-value" id="inv-dia">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">Receita Total / Dia</div>
+                    <div class="kpi-value" id="rec-dia">$0,00</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-label">ROAS $ / Dia</div>
+                    <div class="kpi-value" id="roas-dia">$0,00</div>
+                </div>
+            </div>
+            <div class="grid5">
+                <div class="kpi-card"><div class="kpi-label">Aquisição / Dia</div><div class="kpi-value" id="rec-aq-dia">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-aq-dia">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">E-mail / Dia</div><div class="kpi-value" id="rec-em-dia">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-em-dia">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">Push / Dia</div><div class="kpi-value" id="rec-pu-dia">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-pu-dia">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">WhatsApp / Dia</div><div class="kpi-value" id="rec-wa-dia">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-wa-dia">$0,00</span></div></div>
+                <div class="kpi-card"><div class="kpi-label">SMS / Dia</div><div class="kpi-value" id="rec-sm-dia">$0,00</div><div class="kpi-sub">ROAS $: <span id="roas-sm-dia">$0,00</span></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const formatCurrency = (v) => {
+        const val = Math.abs(v);
+        const formatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+        return (v < 0 ? '-$' : '$') + formatted;
+    };
+    
+    const formatCurrencyAbs = (v) => {
+        const formatted = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(v));
+        return '$' + formatted;
+    };
+    
+    const formatPct = (v) => (v * 100).toFixed(1).replace('.', ',') + '%';
+    
+    function getVal(id) {
+        const el = document.getElementById(id);
+        if (!el || !el.value) return 0;
+        let str = el.value.replace(/\$/g, '').trim();
+        str = str.replace(/\./g, '').replace(',', '.');
+        return parseFloat(str.replace(/[^\d.-]/g, '')) || 0;
+    }
+
+    // ---- PONTO 2: Validação de inputs de texto monetário ----
+    const currencyInputIds = ['meta-custo-ant', 'inv-ant', 'meta-rec-ant', 'rec-ant', 'cons-custo', 'cons-receita'];
+
+    function validateCurrencyInput(id) {
+        const el = document.getElementById(id);
+        const errEl = document.getElementById('err-' + id);
+        if (!el || !el.value.trim()) {
+            el && el.classList.remove('input-error');
+            errEl && errEl.classList.remove('visible');
+            return true;
+        }
+        let str = el.value.replace(/\$/g, '').trim();
+        str = str.replace(/\./g, '').replace(',', '.');
+        const val = parseFloat(str.replace(/[^\d.-]/g, ''));
+        const valid = !isNaN(val) && isFinite(val);
+        el.classList.toggle('input-error', !valid);
+        if (errEl) errEl.classList.toggle('visible', !valid);
+        return valid;
+    }
+
+    function validateAll() {
+        return currencyInputIds.every(id => validateCurrencyInput(id));
+    }
+
+    // ---- PONTO 1: Stepper sincronizado com as abas ----
+    function setView(viewId) {
+        ['historico', 'projecao', 'setor', 'consolidado'].forEach(id => {
+            document.getElementById('view-' + id).style.display = id === viewId ? 'block' : 'none';
+        });
+        document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + viewId));
+        document.querySelectorAll('.stepper-step').forEach(s => s.classList.toggle('active', s.id === 'step-' + viewId));
+    }
+
+    function setPeriodo(periodo) {
+        ['mes', 'semana', 'dia'].forEach(p => {
+            document.getElementById('periodo-' + p).style.display = p === periodo ? 'block' : 'none';
+        });
+        document.querySelectorAll('.sub-tab').forEach(t => t.classList.toggle('active', t.id === 'subtab-' + periodo));
+    }
+
+    document.getElementById('cons-dias-total').addEventListener('input', (e) => {
+        document.getElementById('dias').value = e.target.value;
+    });
+    document.getElementById('dias').addEventListener('input', (e) => {
+        document.getElementById('cons-dias-total').value = e.target.value;
+    });
+
+    const canaisIds = ['aq', 'em', 'pu', 'wa', 'sm'];
+    canaisIds.forEach(id => {
+        const numInput = document.getElementById('num-' + id);
+        const sliderInput = document.getElementById('roas-' + id);
+        numInput.addEventListener('input', () => { sliderInput.value = getVal('num-' + id); calcular(); });
+        sliderInput.addEventListener('input', () => { numInput.value = sliderInput.value; calcular(); });
+    });
+
+    ['proj-var-roas-dol', 'proj-roas-pct-input'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+            calcular();
+            transferirProjecaoParaMesAtual();
+        });
+    });
+
+    document.querySelectorAll('input[name="base-proj"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            calcular();
+            transferirProjecaoParaMesAtual();
+        });
+    });
+
+    function transferirProjecaoParaMesAtual() {
+        const baseType = document.querySelector('input[name="base-proj"]:checked').value;
+        const mCusto = getVal('meta-custo-ant');
+        const rCusto = getVal('inv-ant');
+        const mRec = getVal('meta-rec-ant');
+        const rRec = getVal('rec-ant');
+        const mRoasD = Math.abs(mRec - mCusto);
+        const rRoasD = Math.abs(rRec - rCusto);
+        
+        const bRoasD = (baseType === 'meta') ? mRoasD : rRoasD;
+        const bRoasP = getVal('proj-roas-pct-input') / 100;
+        const varProj = getVal('proj-var-roas-dol') / 100;
+        const pRoasD = bRoasD * (1 + varProj);
+        let pCusto = (bRoasP > 1) ? pRoasD / (bRoasP - 1) : Math.abs(bRoasD);
+        let pRec = Math.abs(pCusto) + Math.abs(pRoasD);
+
+        document.getElementById('investimento').value = formatCurrency(pCusto);
+        document.getElementById('metaReceita').value = formatCurrency(pRec);
+        
+        document.getElementById('investimento').classList.add('auto-filled');
+        document.getElementById('metaReceita').classList.add('auto-filled');
+
+        // PONTO 5: Sincronizar metas no Consolidado
+        syncConsolidadoMetas(pCusto, pRec);
+        
+        calcular(); 
+    }
+
+    // PONTO 5: Sincronizar meta custo/receita do Setor para o Consolidado
+    function syncConsolidadoMetas(custo, receita) {
+        const elC = document.getElementById('cons-meta-custo-input');
+        const elR = document.getElementById('cons-meta-receita-input');
+        if (elC) elC.value = custo > 0 ? formatCurrency(custo) : '';
+        if (elR) elR.value = receita > 0 ? formatCurrency(receita) : '';
+    }
+
+    function calcular() {
+        validateAll();
+
+        // --- HISTÓRICO ---
+        const mCusto = getVal('meta-custo-ant');
+        const rCusto = getVal('inv-ant');
+        const mRec = getVal('meta-rec-ant');
+        const rRec = getVal('rec-ant');
+        const mRoasP = getVal('meta-roas-ant') / 100;
+        const mRoasD = Math.abs(mRec - mCusto);
+        const rRoasD = Math.abs(rRec - rCusto);
+        const rRoasP = rCusto > 0 ? rRec / rCusto : 0;
+
+        document.getElementById('meta-roas-dol-top').value = mRec || mCusto ? formatCurrency(mRoasD) : "";
+        document.getElementById('roas-dol-real-top').value = rRec || rCusto ? formatCurrency(rRoasD) : "";
+
+        document.getElementById('custo-ant-val').innerText = formatCurrency(rCusto);
+        document.getElementById('custo-ant-meta').innerHTML = `Meta: ${formatCurrency(mCusto)}`;
+        document.getElementById('rec-realizada-ant-val').innerText = formatCurrency(rRec);
+        document.getElementById('rec-ant-meta').innerHTML = `Meta: ${formatCurrency(mRec)}`;
+        document.getElementById('roas-dol-ant-val').innerText = formatCurrency(rRoasD);
+        document.getElementById('roas-dol-ant-meta').innerHTML = `Meta: ${formatCurrency(mRoasD)}`;
+        document.getElementById('roas-ant-val').innerText = formatPct(rRoasP);
+        document.getElementById('roas-ant-meta').innerHTML = `Meta: ${formatPct(mRoasP)}`;
+
+        const gap = mRoasD - rRoasD;
+        if (mRec !== 0 || rRec !== 0) {
+            document.getElementById('crescimento-necessario').innerText = formatCurrency(Math.abs(gap));
+            document.getElementById('crescimento-necessario').style.color = gap > 0 ? 'var(--danger)' : 'var(--success)';
+            document.getElementById('cresc-label').innerText = gap > 0 ? "Desafio de Recuperação (Déficit ROAS $)" : "Superávit (Meta ROAS $ Superada)";
+            document.getElementById('cresc-sub').innerText = gap > 0 ? "Não atingimos a meta. Valor acumulado como desafio." : "Atingimos um resultado acima da meta!";
+        }
+
+        // --- PROJEÇÃO ---
+        const baseType = document.querySelector('input[name="base-proj"]:checked').value;
+        const bRoasD = (baseType === 'meta') ? mRoasD : rRoasD;
+        const bCusto = (baseType === 'meta') ? mCusto : rCusto;
+        const bRec   = (baseType === 'meta') ? mRec   : rRec;
+        const bRoasP = getVal('proj-roas-pct-input') / 100; 
+        const varProj = getVal('proj-var-roas-dol') / 100;
+        const pRoasD = bRoasD * (1 + varProj);
+        let pCusto = (bRoasP > 1) ? pRoasD / (bRoasP - 1) : Math.abs(bRoasD);
+        let pRec = Math.abs(pCusto) + Math.abs(pRoasD);
+
+        document.getElementById('proj-roas-dol-val').innerText = formatCurrencyAbs(pRoasD);
+        document.getElementById('proj-roas-pct-val').innerText = formatPct(bRoasP);
+        document.getElementById('proj-custo-val').innerText = formatCurrencyAbs(pCusto);
+        document.getElementById('proj-rec-val').innerText = formatCurrencyAbs(pRec);
+
+        // PONTO 3: Atualiza resumo da base de cálculo
+        const baseLabel = baseType === 'meta' ? 'Meta do mês anterior' : 'Realizado do mês anterior';
+        document.getElementById('proj-base-tipo-label').innerText = baseLabel;
+        document.getElementById('proj-base-roas-dol').innerText = formatCurrency(bRoasD);
+        document.getElementById('proj-base-custo').innerText = formatCurrency(bCusto);
+        document.getElementById('proj-base-receita').innerText = formatCurrency(bRec);
+
+        // --- MÊS ATUAL (SETOR) ---
+        const inv = getVal('investimento');
+        const metaM = getVal('metaReceita');
+        const dias = getVal('dias') || 30;
+
+        const roas = { 
+            aq: getVal('num-aq')/100, 
+            em: getVal('num-em')/100, 
+            pu: getVal('num-pu')/100, 
+            wa: getVal('num-wa')/100, 
+            sm: getVal('num-sm')/100 
+        };
+        
+        const recAq = inv * roas.aq;
+        const recEm = inv * roas.em;
+        const recPu = inv * roas.pu;
+        const recWa = inv * roas.wa;
+        const recSm = inv * roas.sm;
+        const recRet = recEm + recPu + recWa + recSm;
+        const recBruta = recAq + recRet;
+
+        document.getElementById('rec-aq-setor').innerText = formatCurrency(recAq);
+        document.getElementById('rec-em').innerText = formatCurrency(recEm);
+        document.getElementById('rec-pu').innerText = formatCurrency(recPu);
+        document.getElementById('rec-wa').innerText = formatCurrency(recWa);
+        document.getElementById('rec-sm').innerText = formatCurrency(recSm);
+
+        document.getElementById('inv-mes').innerText = formatCurrency(inv);
+        document.getElementById('rec-mes').innerText = formatCurrency(recBruta);
+        document.getElementById('roas-mes').innerText = formatCurrency(recBruta - inv);
+
+        document.getElementById('inv-dia').innerText = formatCurrency(inv / dias);
+        document.getElementById('rec-dia').innerText = formatCurrency(recBruta / dias);
+        document.getElementById('roas-dia').innerText = formatCurrency((recBruta - inv) / dias);
+
+        // Custo proporcional por setor
+        const invAq = recBruta > 0 ? inv * (recAq / recBruta) : 0;
+        const invEm = recBruta > 0 ? inv * (recEm / recBruta) : 0;
+        const invPu = recBruta > 0 ? inv * (recPu / recBruta) : 0;
+        const invWa = recBruta > 0 ? inv * (recWa / recBruta) : 0;
+        const invSm = recBruta > 0 ? inv * (recSm / recBruta) : 0;
+        
+        document.getElementById('roas-aq-dol-mes').innerText = formatCurrency(recAq - invAq);
+        document.getElementById('roas-em-dol-mes').innerText = formatCurrency(recEm - invEm);
+        document.getElementById('roas-pu-dol-mes').innerText = formatCurrency(recPu - invPu);
+        document.getElementById('roas-wa-dol-mes').innerText = formatCurrency(recWa - invWa);
+        document.getElementById('roas-sm-dol-mes').innerText = formatCurrency(recSm - invSm);
+
+        document.getElementById('rec-aq-dia').innerText = formatCurrency(recAq / dias);
+        document.getElementById('roas-aq-dia').innerText = formatCurrency((recAq - invAq) / dias);
+        document.getElementById('rec-em-dia').innerText = formatCurrency(recEm / dias);
+        document.getElementById('roas-em-dia').innerText = formatCurrency((recEm - invEm) / dias);
+        document.getElementById('rec-pu-dia').innerText = formatCurrency(recPu / dias);
+        document.getElementById('roas-pu-dia').innerText = formatCurrency((recPu - invPu) / dias);
+        document.getElementById('rec-wa-dia').innerText = formatCurrency(recWa / dias);
+        document.getElementById('roas-wa-dia').innerText = formatCurrency((recWa - invWa) / dias);
+        document.getElementById('rec-sm-dia').innerText = formatCurrency(recSm / dias);
+        document.getElementById('roas-sm-dia').innerText = formatCurrency((recSm - invSm) / dias);
+
+        const semanas = dias / 7;
+        document.getElementById('inv-sem').innerText = formatCurrency(inv / semanas);
+        document.getElementById('rec-sem').innerText = formatCurrency(recBruta / semanas);
+        document.getElementById('roas-sem').innerText = formatCurrency((recBruta - inv) / semanas);
+
+        document.getElementById('rec-aq-sem').innerText = formatCurrency(recAq / semanas);
+        document.getElementById('roas-aq-sem').innerText = formatCurrency((recAq - invAq) / semanas);
+        document.getElementById('rec-em-sem').innerText = formatCurrency(recEm / semanas);
+        document.getElementById('roas-em-sem').innerText = formatCurrency((recEm - invEm) / semanas);
+        document.getElementById('rec-pu-sem').innerText = formatCurrency(recPu / semanas);
+        document.getElementById('roas-pu-sem').innerText = formatCurrency((recPu - invPu) / semanas);
+        document.getElementById('rec-wa-sem').innerText = formatCurrency(recWa / semanas);
+        document.getElementById('roas-wa-sem').innerText = formatCurrency((recWa - invWa) / semanas);
+        document.getElementById('rec-sm-sem').innerText = formatCurrency(recSm / semanas);
+        document.getElementById('roas-sm-sem').innerText = formatCurrency((recSm - invSm) / semanas);
+
+        // PONTO 5: Sincronizar metas do Setor no Consolidado (readonly)
+        syncConsolidadoMetas(inv, recBruta);
+
+        // --- CONSOLIDADO (PACING DASHBOARD) ---
+        // PONTO 5: metas vêm sempre do Setor
+        const objCusto = inv;
+        const objReceita = recBruta;
+        const objRoasPct = getVal('meta-roas-atual') / 100;
+        const objRoasDol = objReceita - objCusto;
+
+        const realCusto = getVal('cons-custo');
+        const realReceita = getVal('cons-receita');
+        const realRoasDol = realReceita - realCusto;
+        const realRoasPct = realCusto > 0 ? (realReceita / realCusto) : 0;
+
+        const diaAtual = getVal('cons-dia-atual');
+        const diasTotal = getVal('cons-dias-total');
+        const diasRest = Math.max(0, diasTotal - diaAtual);
+        const pctMes = diasTotal > 0 ? (diaAtual / diasTotal) : 0;
+
+        document.getElementById('cons-pct-mes').innerText = formatPct(pctMes);
+        document.getElementById('cons-dias-label').innerText = `Dia ${diaAtual} de ${diasTotal} (Restam ${diasRest})`;
+        document.getElementById('cons-bar-tempo').style.width = `${Math.min(100, pctMes * 100)}%`;
+
+        const colorSuccess = 'var(--success)';
+        const colorWarning = 'var(--warning)';
+        const colorDanger = 'var(--danger)';
+
+        // Custo Card
+        document.getElementById('cons-val-custo').innerText = formatCurrency(realCusto);
+        document.getElementById('cons-meta-custo').innerText = formatCurrency(objCusto);
+        const faltaCusto = objCusto - realCusto; 
+        document.getElementById('cons-falta-custo').innerText = formatCurrency(faltaCusto);
+        document.getElementById('cons-diaria-custo').innerText = diasRest > 0 ? formatCurrency(Math.max(0, faltaCusto) / diasRest) : formatCurrency(0);
+        const pctCusto = objCusto > 0 ? (realCusto / objCusto) : 0;
+        document.getElementById('cons-pct-custo-text').innerText = formatPct(pctCusto);
+        document.getElementById('cons-bar-custo').style.width = `${Math.min(100, pctCusto * 100)}%`;
+        document.getElementById('cons-bar-custo').style.backgroundColor = (pctCusto > pctMes * 1.1) ? colorDanger : (pctCusto > pctMes ? colorWarning : colorSuccess);
+
+        // Receita Card
+        document.getElementById('cons-val-rec').innerText = formatCurrency(realReceita);
+        document.getElementById('cons-meta-rec').innerText = formatCurrency(objReceita);
+        const faltaRec = objReceita - realReceita; 
+        document.getElementById('cons-falta-rec').innerText = formatCurrency(faltaRec);
+        document.getElementById('cons-diaria-rec').innerText = diasRest > 0 ? formatCurrency(Math.max(0, faltaRec) / diasRest) : formatCurrency(0);
+        const pctRec = objReceita > 0 ? (realReceita / objReceita) : 0;
+        document.getElementById('cons-pct-rec-text').innerText = formatPct(pctRec);
+        document.getElementById('cons-bar-rec').style.width = `${Math.min(100, pctRec * 100)}%`;
+        document.getElementById('cons-bar-rec').style.backgroundColor = (pctRec >= pctMes) ? colorSuccess : (pctRec >= pctMes * 0.85 ? colorWarning : colorDanger);
+
+        // ROAS $ Card
+        document.getElementById('cons-val-roasdol').innerText = formatCurrency(realRoasDol);
+        document.getElementById('cons-meta-roasdol').innerText = formatCurrency(objRoasDol);
+        const faltaRoasDol = objRoasDol - realRoasDol;
+        document.getElementById('cons-falta-roasdol').innerText = formatCurrency(faltaRoasDol);
+        document.getElementById('cons-diaria-roasdol').innerText = diasRest > 0 ? formatCurrency(Math.max(0, faltaRoasDol) / diasRest) : formatCurrency(0);
+        const pctRoasDol = objRoasDol > 0 ? (realRoasDol / objRoasDol) : (realRoasDol > 0 ? 1 : 0);
+        document.getElementById('cons-pct-roasdol-text').innerText = formatPct(Math.max(0, pctRoasDol)); 
+        document.getElementById('cons-bar-roasdol').style.width = `${Math.min(100, Math.max(0, pctRoasDol) * 100)}%`;
+        document.getElementById('cons-bar-roasdol').style.backgroundColor = (pctRoasDol >= pctMes) ? colorSuccess : (pctRoasDol >= pctMes * 0.85 ? colorWarning : colorDanger);
+
+        // ROAS % Card
+        document.getElementById('cons-val-roaspct').innerText = formatPct(realRoasPct);
+        document.getElementById('cons-meta-roaspct').innerText = formatPct(objRoasPct);
+        const gapDisplay = realRoasPct - objRoasPct; 
+        document.getElementById('cons-falta-roaspct').innerText = (gapDisplay > 0 ? '+' : '') + formatPct(gapDisplay);
+        document.getElementById('cons-falta-roaspct').style.color = gapDisplay >= 0 ? 'var(--success)' : 'var(--danger)';
+        document.getElementById('cons-diaria-roaspct').innerText = gapDisplay >= 0 ? 'Acima da Meta' : 'Abaixo da Meta';
+        
+        const pctRoasPctAting = objRoasPct > 0 ? (realRoasPct / objRoasPct) : 0;
+        document.getElementById('cons-pct-roaspct-text').innerText = formatPct(pctRoasPctAting);
+        document.getElementById('cons-bar-roaspct').style.width = `${Math.min(100, pctRoasPctAting * 100)}%`;
+        document.getElementById('cons-bar-roaspct').style.backgroundColor = (pctRoasPctAting >= 1) ? colorSuccess : (pctRoasPctAting >= 0.85 ? colorWarning : colorDanger);
+    }
+
+    const historicIds = ['meta-custo-ant', 'inv-ant', 'meta-rec-ant', 'rec-ant', 'meta-roas-ant'];
+    document.querySelectorAll('input').forEach(el => {
+        el.addEventListener('input', () => {
+            calcular();
+            if (historicIds.includes(el.id)) transferirProjecaoParaMesAtual();
+        });
+    });
+
+    // Validação em tempo real para inputs monetários
+    currencyInputIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => validateCurrencyInput(id));
+    });
+    
+    setView('historico');
+    setPeriodo('mes');
+    calcular();
+</script>
+
+</body>
+</html>
